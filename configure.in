@@ -1,0 +1,32 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(passwd.c)
+
+AC_PROG_CC
+AC_PROG_INSTALL
+
+AC_MSG_CHECKING(for /etc/master.passwd)
+if test -f /etc/master.passwd; then
+	AC_DEFINE(HAVE_MASTER_PASSWD)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+AC_MSG_CHECKING(for /etc/shadow)
+if test -f /etc/shadow; then
+	AC_DEFINE(HAVE_SHADOW)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+AC_CANONICAL_HOST
+case $target_os in
+netbsd*)
+	AC_DEFINE(PASSWD_NEEDS_LFLAG)
+	;;
+esac
+
+ATHENA_HESIOD
+
+AC_OUTPUT(Makefile)

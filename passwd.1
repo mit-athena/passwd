@@ -1,0 +1,79 @@
+.\" $Id: passwd.1,v 1.1 1998-05-08 15:15:09 ghudson Exp $
+.\"
+.\" Copyright 1998 by the Massachusetts Institute of Technology.
+.\"
+.\" Permission to use, copy, modify, and distribute this
+.\" software and its documentation for any purpose and without
+.\" fee is hereby granted, provided that the above copyright
+.\" notice appear in all copies and that both that copyright
+.\" notice and this permission notice appear in supporting
+.\" documentation, and that the name of M.I.T. not be used in
+.\" advertising or publicity pertaining to distribution of the
+.\" software without specific, written prior permission.
+.\" M.I.T. makes no representations about the suitability of
+.\" this software for any purpose.  It is provided "as is"
+.\" without express or implied warranty.
+.TH PASSWD 1 "5 May 1998"
+.SH NAME
+passwd \- Change Kerberos or local password
+.SH SYNOPSIS
+passwd \fI[-k|-l]\fR \fI[username]\fR
+.SH DESCRIPTION
+.I passwd
+changes a user's Kerberos or local password and possibly updates the
+system's local password file with the new user entry.
+.PP
+The first task of
+.I passwd
+is to choose between the Kerberos and local password-changing
+programs.  If the
+.B -k
+argument is given,
+.I passwd
+runs the Kerberos password-changing program (/usr/athena/bin/kpasswd);
+if the
+.B -l
+argument is given,
+.I passwd
+runs the local password-changing program (/usr/bin/passwd).  If
+neither option is given,
+.I passwd
+runs the local password-changing program if it is invoked by root or
+by a user listed as having a local account in
+.IR /etc/athena/access .
+Otherwise, it runs the Kerberos password-changing program.
+.PP
+If
+.I passwd
+runs the local password-changing program, it subsequently attempts to
+update the appropriate local passwd file (which may be
+.IR /etc/passwd.local ,
+.IR /etc/shadow.local ,
+or
+.I /etc/master.passwd.local
+depending on the system type) by replacing the line for the user with
+the new line from the appropriate passwd file.  If there is no local
+passwd file or if the user has no entry in the local passwd file, no
+update is performed.
+.SH FILES
+/etc/athena/access
+.br
+/etc/passwd
+.br
+/etc/passwd.local
+.br
+/etc/shadow
+.br
+/etc/shadow.local
+.br
+/etc/master.passwd
+.br
+/etc/master.passwd.local
+.PP
+depending on the system type.
+.SH "SEE ALSO"
+access(5)
+.SH AUTHOR
+Greg Hudson, MIT Information Systems
+.br
+Copyright 1998 by the Massachusetts Institute of Technology.
