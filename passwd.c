@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.10 1999-09-21 20:08:19 danw Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.11 1999-09-26 13:58:59 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -64,7 +64,7 @@ static const char rcsid[] = "$Id: passwd.c,v 1.10 1999-09-21 20:08:19 danw Exp $
 static void update_passwd_local(const char *username);
 static int read_line(FILE *fp, char **buf, int *bufsize);
 static void usage(void);
-static void cleanup(void);
+static void cleanup(int sig);
 
 int main(int argc, char **argv)
 {
@@ -147,7 +147,8 @@ int main(int argc, char **argv)
 	  if (!pwd || pwd->pw_uid != ruid)
 	    {
 	      fprintf(stderr, "passwd: username/ruid mismatch: %s has uid %lu,"
-		      " but ruid is %lu.\n", username, pwd->pw_uid, ruid);
+		      " but ruid is %lu.\n", username,
+		      (unsigned long) pwd->pw_uid, (unsigned long) ruid);
 	      return 1;
 	    }
 	}
@@ -410,7 +411,7 @@ static void usage(void)
   exit(1);
 }
 
-static void cleanup(void)
+static void cleanup(int sig)
 {
   unlink(PATH_PASSWD_LOCAL_TMP);
   exit(1);
