@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.3 1998-05-24 18:47:57 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.4 1998-07-15 18:25:42 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -133,9 +133,7 @@ int main(int argc, char **argv)
        * in the passwd file.  This is perhaps overly paranoid, since
        * /usr/bin/passwd should error out if the user is unauthorized,
        * but we don't want to let users update other users' local passwd
-       * entries if /usr/bin/passwd doesn't properly flag the error, or
-       * if /usr/bin/passwd derives a different default username than
-       * runner.
+       * entries if /usr/bin/passwd doesn't properly flag the error.
        */
       if (ruid != 0)
 	{
@@ -170,10 +168,10 @@ int main(int argc, char **argv)
 	   * password.
 	   */
 	  args[1] = "-l";
-	  args[2] = *argv;
+	  args[2] = username;
 	  args[3] = NULL;
 #else
-	  args[1] = *argv;
+	  args[1] = username;
 	  args[2] = NULL;
 #endif
 	  execv(PATH_PASSWD_PROG, args);
