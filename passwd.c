@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.6 1998-12-31 23:44:31 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.6.2.1 1999-06-18 21:54:08 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -205,8 +205,9 @@ int main(int argc, char **argv)
       args[0] = "kpasswd";
       if (*argv)
 	{
-	  args[1] = *argv;
-	  args[2] = NULL;
+	  args[1] = "-n";
+	  args[2] = *argv;
+	  args[3] = NULL;
 	}
       else
 	args[1] = NULL;
