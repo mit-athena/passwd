@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.7 1999-06-17 21:03:01 danw Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.8 1999-07-08 16:48:19 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	    }
 	}
 
-      printf("Running local password-changing program.\n");
+      printf("Running local password-changing program for %s.\n, username");
       pid = fork();
       if (pid == -1)
 	{
