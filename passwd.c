@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.12 1999-10-12 12:38:58 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.13 2000-04-11 21:18:37 rbasch Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -243,6 +243,12 @@ static void update_passwd_local(const char *username)
 
   /* Find the line for username in the passwd file. */
   fp = fopen(PATH_PASSWD, "r");
+  if (fp == NULL)
+    {
+      fprintf(stderr, "Can't open %s so not updating local passwd file.\n",
+	      PATH_PASSWD);
+      exit(1);
+    }
   found = 0;
   while (read_line(fp, &line, &linesize) == 0)
     {
