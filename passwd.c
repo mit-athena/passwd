@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.6.2.3 1999-07-14 17:52:31 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.6.2.4 1999-10-12 19:59:38 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -94,22 +94,32 @@ int main(int argc, char **argv)
   if ((local && krb) || argc > 1)
     usage();
 
-  /* Figure out the username who is allegedly running this program. */
-  runner = getenv("USER");
-  if (!runner)
+  /* Figure out the username who is allegedly running this program.
+   * Unfortunately, getenv("USER") yields the wrong answer if the user
+   * has done an "su", so fall back to that only if ruid isn't in the
+   * passwd file.
+   */
+  pwd = getpwuid(ruid);
+  if (pwd)
+    runner = pwd->pw_name;
+  else
     {
-      pwd = getpwuid(ruid);
-      if (!pwd)
+      runner = getenv("USER");
+      if (!runner)
 	{
 	  fprintf(stderr, "passwd: can't determine running user.\n");
 	  return 1;
 	}
-      runner = strdup(pwd->pw_name);
-      if (!runner)
-	{
-	  fprintf(stderr, "passwd: out of memory.\n");
-	  return 1;
-	}
+    }
+
+  /* runner currently points to static or environment storage; make a
+   * copy of it in allocated memory.
+   */
+  runner = strdup(runner);
+  if (!runner)
+    {
+      fprintf(stderr, "passwd: out of memory.\n");
+      return 1;
     }
 
   if (!local && !krb)
