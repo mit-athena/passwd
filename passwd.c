@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.13 2000-04-11 21:18:37 rbasch Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.13.2.1 2001-03-09 21:36:13 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -69,7 +69,7 @@ static void cleanup(int sig);
 int main(int argc, char **argv)
 {
   extern int optind;
-  int c, local = 0, krb = 0, rval, status;
+  int c, local = 0, krb = 0, rval, status, n;
   char *args[4], *runner, *username;
   pid_t pid;
   uid_t ruid = getuid();
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
   if (local)
     {
       /* Figure out which user's password is being changed. */
-      username = (argc == 1) ? argv[0] : runner;
+      username = (argc > 0) ? argv[0] : runner;
 
       /* If we're not run by root, make sure username matches our ruid
        * in the passwd file.  This is perhaps overly paranoid, since
@@ -173,18 +173,20 @@ int main(int argc, char **argv)
       else if (pid == 0)
 	{
 	  setuid(ruid);
-	  args[0] = "passwd";
+	  n = 0;
+	  args[n++] = "passwd";
 #ifdef PASSWD_NEEDS_LFLAG
 	  /* Some passwd programs need a -l flag to specify the local
 	   * password.
 	   */
-	  args[1] = "-l";
-	  args[2] = username;
-	  args[3] = NULL;
-#else
-	  args[1] = username;
-	  args[2] = NULL;
+	  args[n++] = "-l";
 #endif
+	  /* Pass a username if we're running as root or if one was
+	   * given on the command line.
+	   */
+	  if (ruid == 0 || argc > 0)
+	    args[n++] = username;
+	  args[n] = NULL;
 	  execv(PATH_PASSWD_PROG, args);
 	  perror("passwd: execv");
 	  _exit(1);
