@@ -20,7 +20,7 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-AC_CANONICAL_HOST
+AC_CANONICAL_SYSTEM
 case $target_os in
 netbsd*)
 	AC_DEFINE(PASSWD_NEEDS_LFLAG)
