@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.4 1998-07-15 18:25:42 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.5 1998-09-24 13:51:50 ghudson Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -224,6 +224,7 @@ static void update_passwd_local(const char *username)
   int linesize, len, found, fd, count, i, status;
   struct sigaction action;
   sigset_t mask, omask;
+  mode_t oldumask;
 
   len = strlen(username);
 
@@ -272,7 +273,9 @@ static void update_passwd_local(const char *username)
   for (i = 0; i < 10; i++)
     {
       sigprocmask(SIG_BLOCK, &mask, &omask);
+      oldumask = umask(0);
       fd = open(PATH_PASSWD_LOCAL_TMP, O_RDWR|O_CREAT|O_EXCL, PLTMP_MODE);
+      umask(oldumask);
       if (fd != -1)
 	{
 	  sigemptyset(&action.sa_mask);
