@@ -18,7 +18,7 @@
  * local passwd file if the local password-changing program is selected.
  */
 
-static const char rcsid[] = "$Id: passwd.c,v 1.9 1999-07-14 17:52:07 ghudson Exp $";
+static const char rcsid[] = "$Id: passwd.c,v 1.10 1999-09-21 20:08:19 danw Exp $";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -64,7 +64,7 @@ static const char rcsid[] = "$Id: passwd.c,v 1.9 1999-07-14 17:52:07 ghudson Exp
 static void update_passwd_local(const char *username);
 static int read_line(FILE *fp, char **buf, int *bufsize);
 static void usage(void);
-static void cleanup();
+static void cleanup(void);
 
 int main(int argc, char **argv)
 {
@@ -177,6 +177,8 @@ int main(int argc, char **argv)
 	  execv(PATH_PASSWD_PROG, args);
 	  perror("passwd: execv");
 	  _exit(1);
+	  /* gcc (2.95 at least) doesn't realize that _exit() exits. */
+	  return 1;
 	}
       else
 	{
@@ -221,7 +223,7 @@ static void update_passwd_local(const char *username)
 {
   FILE *fp, *fp_out;
   char *line = NULL, *userline;
-  int linesize, len, found, fd, count, i, status;
+  int linesize, len, found, fd, i, status;
   struct sigaction action;
   sigset_t mask, omask;
   mode_t oldumask;
