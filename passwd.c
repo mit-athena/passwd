@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -38,7 +39,7 @@
 #define PLTMP_MODE (S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH)
 #endif
 
-static void update_passwd_local(void);
+static void update_passwd_local(const char *username);
 static int read_line(FILE *fp, char **buf, int *bufsize);
 static void usage(void);
 static void cleanup();
@@ -47,8 +48,10 @@ int main(int argc, char **argv)
 {
   extern int optind;
   int c, local = 0, krb = 0, rval, status;
-  char *args[4];
+  char *args[4], *runner, *username;
   pid_t pid;
+  uid_t ruid = getuid();
+  struct passwd *pwd;
 
   while ((c = getopt(argc, argv, "lk")) != -1)
     {
@@ -69,6 +72,24 @@ int main(int argc, char **argv)
   if ((local && krb) || argc > 1)
     usage();
 
+  /* Figure out the username who is allegedly running this program. */
+  runner = getenv("USER");
+  if (!runner)
+    {
+      pwd = getpwuid(ruid);
+      if (!pwd)
+	{
+	  fprintf(stderr, "passwd: can't determine running user.\n");
+	  return 1;
+	}
+      runner = strdup(pwd->pw_name);
+      if (!runner)
+	{
+	  fprintf(stderr, "passwd: out of memory.\n");
+	  return 1;
+	}
+    }
+
   if (!local && !krb)
     {
       /* Decide via a heuristic test whether to run local or Kerberos
@@ -77,12 +98,40 @@ int main(int argc, char **argv)
        * then we use the local passwd program; otherwise we use
        * kpasswd.
        */
-      if (getuid() == 0 || al_is_local_acct(getenv("USER")) == 1)
+      if (ruid == 0 || al_is_local_acct(runner) == 1)
 	local = 1;
     }
 
   if (local)
     {
+      /* Figure out which user's password is being changed. */
+      username = (argc == 1) ? argv[0] : runner;
+
+      /* If we're not run by root, make sure username matches our ruid
+       * in the passwd file.  This is perhaps overly paranoid, since
+       * /usr/bin/passwd should error out if the user is unauthorized,
+       * but we don't want to let users update other users' local passwd
+       * entries if /usr/bin/passwd doesn't properly flag the error, or
+       * if /usr/bin/passwd derives a different default username than
+       * runner.
+       */
+      if (ruid != 0)
+	{
+	  pwd = getpwnam(username);
+	  if (!pwd)
+	    {
+	      fprintf(stderr, "passwd: Can't find uid for username %s.\n",
+		      username);
+	      return 1;
+	    }
+	  if (!pwd || pwd->pw_uid != ruid)
+	    {
+	      fprintf(stderr, "passwd: username/ruid mismatch: %s has uid %lu,"
+		      " but ruid is %lu.\n", username, pwd->pw_uid, ruid);
+	      return 1;
+	    }
+	}
+
       printf("Running local password-changing program.\n");
       pid = fork();
       if (pid == -1)
@@ -92,7 +141,7 @@ int main(int argc, char **argv)
 	}
       else if (pid == 0)
 	{
-	  setuid(getuid());
+	  setuid(ruid);
 	  args[0] = "passwd";
 #ifdef PASSWD_NEEDS_LFLAG
 	  /* Some passwd programs need a -l flag to specify the local
@@ -125,44 +174,37 @@ int main(int argc, char **argv)
 	  if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
 	    return 1;
 
-	  update_passwd_local();
+	  update_passwd_local(username);
 	  return 0;
 	}
     }
   else
     {
       printf("Running Kerberos password-changing program.\n");
-      setuid(getuid());
+      setuid(ruid);
       args[0] = "kpasswd";
-      args[1] = *argv;
-      args[2] = NULL;
+      if (*argv)
+	{
+	  args[1] = "-n";
+	  args[2] = *argv;
+	  args[3] = NULL;
+	}
+      else
+	args[1] = NULL;
       execv(PATH_KPASSWD_PROG, args);
       perror("passwd: execv");
       return 1;
     }
 }
 
-static void update_passwd_local(void)
+static void update_passwd_local(const char *username)
 {
   FILE *fp, *fp_out;
-  char *line = NULL, *username, *userline;
+  char *line = NULL, *userline;
   int linesize, len, found, fd, count, i, status;
-  struct passwd *pwd;
   struct sigaction action;
   sigset_t mask, omask;
 
-  /* Look up the username for getuid().  In this instance getenv("USER")
-   * can't be trusted.
-   */
-  pwd = getpwuid(getuid());
-  if (!pwd)
-    {
-      fprintf(stderr,
-	      "Can't look up uid %lu so can't update local passwd file.\n",
-	      (unsigned long) getuid());
-      exit(1);
-    }
-  username = pwd->pw_name;
   len = strlen(username);
 
   /* Find the line for username in the passwd file. */
