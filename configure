@@ -822,7 +822,7 @@ host_vendor=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
 host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
-case $target_os in
+case $host_os in
 netbsd*)
 	cat >> confdefs.h <<\EOF
 #define PASSWD_NEEDS_LFLAG 1
