@@ -1,3 +1,25 @@
+/* Copyright 1998 by the Massachusetts Institute of Technology.
+ *
+ * Permission to use, copy, modify, and distribute this
+ * software and its documentation for any purpose and without
+ * fee is hereby granted, provided that the above copyright
+ * notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting
+ * documentation, and that the name of M.I.T. not be used in
+ * advertising or publicity pertaining to distribution of the
+ * software without specific, written prior permission.
+ * M.I.T. makes no representations about the suitability of
+ * this software for any purpose.  It is provided "as is"
+ * without express or implied warranty.
+ */
+
+/* This program implements a passwd glue program which selects between
+ * the Kerberos and local password-changing programs, and updates the
+ * local passwd file if the local password-changing program is selected.
+ */
+
+static const char rcsid[] = "$Id: passwd.c,v 1.3 1998-05-24 18:47:57 ghudson Exp $";
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
